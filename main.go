@@ -1,45 +1,19 @@
 package main
 
-type Room struct {
-	Ants     int
-	Tunnels  [][]int
-	Occupied bool
-	Name     string
-	Position []int
-}
+import (
+	"fmt"
+	"os"
+)
 
 func main() {
-	rooms := make(map[string]*Room)
-	v := make(map[string][][]int)
-
-	roomdata := map[string][]int{
-		"A": {0, 3},
-		"B": {2, 5},
-		"C": {4, 0},
-		"D": {8, 3},
+	if len(os.Args) > 2 || len(os.Args) < 2 {
+		return
 	}
-
-	v["A"] = [][]int{
-		{0, 2},
-		{2, 3},
-		{3, 1},
+	file, err := os.Open(os.Args[1])
+	if err != nil {
+		fmt.Printf("Error reading file %v", err)
+		return
 	}
-	antpos := [][]int{
-		{0, 3},
-	}
-
-	for name, pos := range roomdata {
-		rooms[name] = &Room{
-			Name:     name,
-			Position: pos,
-			Tunnels:  v[name],
-			Occupied: IsOccupied(pos, antpos),
-			Ants:     0,
-		}
-	}
-
-	for name, room := range rooms {
-		println("Room:", name, "Position:", room.Position[0], room.Position[1], "Occupied:", room.Occupied)
-	}
-
+	defer file.Close()
+	init(file)
 }
