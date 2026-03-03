@@ -4,12 +4,11 @@ type Room struct {
 	Ants     int
 	Tunnels  [][]int
 	Occupied bool
-	Rooms    []string
-	roompos  []int
+	Name     string
+	Position []int
 }
 
 func main() {
-	ants := 1
 	rooms := make(map[string]*Room)
 	v := make(map[string][][]int)
 
@@ -20,23 +19,27 @@ func main() {
 		"D": {8, 3},
 	}
 
-	antpos := [][]int{
-		{0, 3},
-	}
-
 	v["A"] = [][]int{
 		{0, 2},
 		{2, 3},
 		{3, 1},
 	}
+	antpos := [][]int{
+		{0, 3},
+	}
 
-	for name, pos := range roomData {
+	for name, pos := range roomdata {
 		rooms[name] = &Room{
 			Name:     name,
 			Position: pos,
-			Tunnels:  [][]int{}, // Will add connections later
-			Occupied: isOccupied(pos, antpos),
+			Tunnels:  v[name],
+			Occupied: IsOccupied(pos, antpos),
 			Ants:     0,
 		}
 	}
+
+	for name, room := range rooms {
+		println("Room:", name, "Position:", room.Position[0], room.Position[1], "Occupied:", room.Occupied)
+	}
+
 }
