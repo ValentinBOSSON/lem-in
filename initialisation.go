@@ -2,50 +2,91 @@ package main
 
 import (
 	"bufio"
-	"fmt"
 	"os"
 	"strconv"
 	"strings"
 )
 
-func init(file *os.File) {
+func parseFile(file *os.File) (map[string]*chamber, int, *chamber, *chamber) {
 	chambers := make(map[string]*chamber)
 	temp := [][]string{}
-
 	scanner := bufio.NewScanner(file)
+	numAnts := 0
+	var start, end *chamber
+	nextIsStart := false
+	nextIsEnd := false
+	firstLine := true
 	for scanner.Scan() {
 		line := scanner.Text()
 		trimmedLine := strings.TrimSpace(line)
 		if trimmedLine == "" {
 			continue
 		}
-		if strings.HasPrefix(trimmedLine, "#") {
+		if trimmedLine == "##start" {
+			nextIsStart = true
 			continue
 		}
+		if trimmedLine == "##end" {
+			nextIsEnd = true
+			continue
+		}
+		if strings.HasPrefix(trimmedLine, "#") && !strings.HasPrefix(trimmedLine, "##") {
+			continue
+		}
+		if firstLine {
+			numAnts, _ = strconv.Atoi(trimmedLine)
+			firstLine = false
+			continue
+		}
+
 		if strings.Contains(trimmedLine, "-") {
 			foundTunnel := strings.Split(trimmedLine, "-")
 			temp = append(temp, foundTunnel)
-		} else {
-			nodeParts := strings.Fields(trimmedLine)
-			if len(nodeParts) == 3 {
-				x, _ := strconv.Atoi(nodeParts[1])
-				y, _ := strconv.Atoi(nodeParts[2])
-				chambers[nodeParts[0]] = &chamber{
-					ID:          nodeParts[0],
-					coordinates: []int{x, y},
-					occupied:    false,
-					tunnels:     []*chamber{},
-				}
+			continue
+		}
+
+		nodeParts := strings.Fields(trimmedLine)
+		if len(nodeParts) == 3 {
+			x, _ := strconv.Atoi(nodeParts[1])
+			y, _ := strconv.Atoi(nodeParts[2])
+
+			chamber := &chamber{
+				ID:          nodeParts[0],
+				coordinates: []int{x, y},
+				occupied:    false,
+				tunnels:     []*chamber{},
+			}
+
+			chambers[nodeParts[0]] = chamber
+
+			if nextIsStart {
+				start = chamber
+				nextIsStart = false
+			}
+			if nextIsEnd {
+				end = chamber
+				nextIsEnd = false
 			}
 		}
 	}
-	if err := scanner.Err(); err != nil {
-		fmt.Printf("Error scanning file %v", err)
-	}
+
 	for _, tunnel := range temp {
 		node1 := tunnel[0]
 		node2 := tunnel[1]
 		chambers[node1].tunnels = append(chambers[node1].tunnels, chambers[node2])
 		chambers[node2].tunnels = append(chambers[node2].tunnels, chambers[node1])
 	}
+
+	return chambers, numAnts, start, end
+}
+
+func createAnts(numAnts int, startChamber *chamber) []*ant {
+	ants := make([]*ant, numAnts)
+	for i := 0; i < numAnts; i++ {
+		ants[i] = &ant{
+			ID:           i + 1,
+			coordination: []int{startChamber.coordinates[0], startChamber.coordinates[1]},
+		}
+	}
+	return ants
 }
