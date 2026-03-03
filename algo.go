@@ -1,17 +1,22 @@
 package main
 
-func IsOccupied(roompos []int, antpos [][]int) bool {
-	for _, ap := range antpos {
-		if ap[0] == roompos[0] && ap[1] == roompos[1] {
-			return true
-		}
+func IsOccupied(x int, y int, antpos *ant) bool {
+	if antpos.coordination[0] == x && antpos.coordination[1] == y {
+		return true
 	}
 	return false
 }
 
-func Canmove(room *Room, antpos [][]int) bool {
-	if room.Occupied == false {
-		room.Tunnels = nil
+func Canmove(room *chamber, antpos [][]int) bool {
+	if room.occupied == false {
+		room.tunnels = nil
 	}
 	return true
 }
+
+/*func OptimizedPath(end *chamber) {
+	if chamber.occupied == true {
+
+	}
+}
+*/

@@ -11,7 +11,7 @@ func parseFile(file *os.File) (map[string]*chamber, int, *chamber, *chamber) {
 	chambers := make(map[string]*chamber)
 	temp := [][]string{}
 	scanner := bufio.NewScanner(file)
-	numAnts := 0
+	numAnts := 1
 	var start, end *chamber
 	nextIsStart := false
 	nextIsEnd := false
@@ -50,10 +50,15 @@ func parseFile(file *os.File) (map[string]*chamber, int, *chamber, *chamber) {
 			x, _ := strconv.Atoi(nodeParts[1])
 			y, _ := strconv.Atoi(nodeParts[2])
 
+			ant := &ant{
+				ID:           1,
+				coordination: []int{23, 3},
+			}
+
 			chamber := &chamber{
 				ID:          nodeParts[0],
 				coordinates: []int{x, y},
-				occupied:    false,
+				occupied:    IsOccupied(x, y, ant),
 				tunnels:     []*chamber{},
 			}
 
