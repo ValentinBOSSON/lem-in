@@ -39,7 +39,7 @@ func parseFile(file *os.File) (map[string]*chamber, int, *chamber, *chamber) {
 			continue
 		}
 
-		if strings.Contains(trimmedLine, "-") {
+		if strings.Contains(trimmedLine, "-") && len(strings.Fields(trimmedLine)) == 1 {
 			foundTunnel := strings.Split(trimmedLine, "-")
 			temp = append(temp, foundTunnel)
 			continue
@@ -50,15 +50,10 @@ func parseFile(file *os.File) (map[string]*chamber, int, *chamber, *chamber) {
 			x, _ := strconv.Atoi(nodeParts[1])
 			y, _ := strconv.Atoi(nodeParts[2])
 
-			ant := &ant{
-				ID:           1,
-				coordination: []int{23, 3},
-			}
-
 			chamber := &chamber{
 				ID:          nodeParts[0],
 				coordinates: []int{x, y},
-				occupied:    IsOccupied(x, y, ant),
+				occupied:    false,
 				tunnels:     []*chamber{},
 			}
 
