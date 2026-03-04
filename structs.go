@@ -6,3 +6,8 @@ type chamber struct {
 	occupied    bool
 	tunnels     []*chamber
 }
+
+type ant struct {
+	ID           int
+	coordination []int
+}
