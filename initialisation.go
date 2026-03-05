@@ -11,7 +11,7 @@ func parseFile(file *os.File) (map[string]*chamber, int, *chamber, *chamber) {
 	chambers := make(map[string]*chamber)
 	temp := [][]string{}
 	scanner := bufio.NewScanner(file)
-	numAnts := 0
+	numAnts := 1
 	var start, end *chamber
 	nextIsStart := false
 	nextIsEnd := false
@@ -39,7 +39,7 @@ func parseFile(file *os.File) (map[string]*chamber, int, *chamber, *chamber) {
 			continue
 		}
 
-		if strings.Contains(trimmedLine, "-") {
+		if strings.Contains(trimmedLine, "-") && len(strings.Fields(trimmedLine)) == 1 {
 			foundTunnel := strings.Split(trimmedLine, "-")
 			temp = append(temp, foundTunnel)
 			continue
