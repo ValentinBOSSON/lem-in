@@ -86,6 +86,8 @@ func createAnts(numAnts int, startChamber *chamber) []*ant {
 		ants[i] = &ant{
 			ID:           i + 1,
 			coordination: []int{startChamber.coordinates[0], startChamber.coordinates[1]},
+			oldchambre:   0,
+			currentRoom:  startChamber,
 		}
 	}
 	return ants

@@ -12,6 +12,7 @@ func main() {
 	file, err := os.Open(os.Args[1])
 	if err != nil {
 		fmt.Printf("Error reading file %v", err)
+		fmt.Printf("\n")
 		return
 	}
 	defer file.Close()
@@ -26,6 +27,20 @@ func main() {
 	} else {
 		fmt.Printf("Created 0 ants\n")
 	}
+
+	path := FindFastestPath(start, end)
+	if path == nil {
+		fmt.Println("No path found between start and end")
+		return
+	}
+	fmt.Printf("Fastest path: %s\n", formatPath(path))
+
+	if err := SimulateAntsOnPath(ants, path, "deplacements.log"); err != nil {
+		fmt.Printf("Simulation error: %v\n", err)
+		return
+	}
+	fmt.Println("Log saved in deplacements.log")
+
 	fmt.Println("\nAll chambers:")
 	for id, chamber := range chambers {
 		fmt.Printf("ID: %s, Position: %v, Connected to: ", id, chamber.coordinates)

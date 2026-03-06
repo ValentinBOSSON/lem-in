@@ -10,4 +10,6 @@ type chamber struct {
 type ant struct {
 	ID           int
 	coordination []int
+	oldchambre   int
+	currentRoom  *chamber
 }
