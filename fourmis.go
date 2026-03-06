@@ -30,6 +30,9 @@ func SimulateAntsOnPath(ants []*ant, path []*chamber, logPath string) error {
 		return fmt.Errorf("invalid path")
 	}
 
+	startRoom := path[0]
+	endRoom := path[len(path)-1]
+
 	logFile, err := os.Create(logPath)
 	if err != nil {
 		return err
@@ -39,6 +42,7 @@ func SimulateAntsOnPath(ants []*ant, path []*chamber, logPath string) error {
 	resetPathOccupancy(path)
 	for _, oneAnt := range ants {
 		oneAnt.oldchambre = 0
+		oneAnt.currentRoom = startRoom
 		oneAnt.coordination = []int{path[0].coordinates[0], path[0].coordinates[1]}
 	}
 
@@ -46,6 +50,8 @@ func SimulateAntsOnPath(ants []*ant, path []*chamber, logPath string) error {
 	turn := 1
 
 	for finished < len(ants) {
+		endRoom.occupied = false
+
 		sort.SliceStable(ants, func(i, j int) bool {
 			if ants[i].oldchambre == ants[j].oldchambre {
 				return ants[i].ID < ants[j].ID
@@ -56,31 +62,34 @@ func SimulateAntsOnPath(ants []*ant, path []*chamber, logPath string) error {
 		moves := make([]string, 0)
 
 		for _, oneAnt := range ants {
-			if oneAnt.oldchambre >= len(path)-1 {
+			if oneAnt.currentRoom == endRoom {
 				continue
 			}
 
-			currentIndex := oneAnt.oldchambre
-			nextIndex := currentIndex + 1
-			nextRoom := path[nextIndex]
-
-			canMove := nextIndex == len(path)-1 || !nextRoom.occupied
-			if !canMove {
+			bestPath := FindFastestPath(oneAnt.currentRoom, endRoom)
+			if len(bestPath) < 2 {
 				continue
 			}
 
-			if currentIndex > 0 && currentIndex < len(path)-1 {
-				path[currentIndex].occupied = false
+			nextRoom := bestPath[1]
+			if nextRoom.occupied && nextRoom != endRoom {
+				continue
 			}
-			if nextIndex > 0 && nextIndex < len(path)-1 {
+
+			if oneAnt.currentRoom != startRoom && oneAnt.currentRoom != endRoom {
+				oneAnt.currentRoom.occupied = false
+			}
+			if nextRoom != startRoom && nextRoom != endRoom {
 				nextRoom.occupied = true
 			}
 
-			oneAnt.oldchambre = nextIndex
+			oneAnt.currentRoom = nextRoom
+			oneAnt.oldchambre++
 			oneAnt.coordination = []int{nextRoom.coordinates[0], nextRoom.coordinates[1]}
 			moves = append(moves, fmt.Sprintf("L%d-%s", oneAnt.ID, nextRoom.ID))
 
-			if nextIndex == len(path)-1 {
+			if nextRoom == endRoom {
+				endRoom.occupied = true
 				finished++
 			}
 		}
