@@ -7,6 +7,7 @@ import (
 
 func main() {
 	if len(os.Args) > 2 || len(os.Args) < 2 {
+		fmt.Println("ERROR: invalid data format")
 		return
 	}
 	file, err := os.Open(os.Args[1])
@@ -28,14 +29,37 @@ func main() {
 		fmt.Printf("Created 0 ants\n")
 	}
 
-	path := FindFastestPath(start, end)
-	if path == nil {
-		fmt.Println("No path found between start and end")
+	// Find vertex-disjoint paths for all ants
+	paths := FindVertexDisjointPaths(start, end, numAnts)
+	if len(paths) == 0 {
+		fmt.Println("No paths found between start and end")
 		return
 	}
-	fmt.Printf("Fastest path: %s\n", formatPath(path))
+	fmt.Printf("Found %d disjoint paths\n", len(paths))
+	for i, path := range paths {
+		fmt.Printf("Path %d: ", i+1)
+		for _, room := range path {
+			fmt.Printf("%s ", room.ID)
+		}
+		fmt.Printf("(length: %d)\n", len(path))
+	}
 
-	if err := SimulateAntsOnPath(ants, path, "deplacements.log"); err != nil {
+	// Calculate optimal ant distribution across paths
+	distribution := OptimalAntDistribution(paths, numAnts)
+
+	// Show the distribution
+	totalExpectedTurns := 0
+	for j := 0; j < len(paths); j++ {
+		antsOnPath := distribution[j]
+		expectedTurns := len(paths[j]) - 1 + antsOnPath - 1
+		if expectedTurns > totalExpectedTurns {
+			totalExpectedTurns = expectedTurns
+		}
+		fmt.Printf("Path %d: %d ants → expected completion in ~%d turns\n", j+1, antsOnPath, expectedTurns)
+	}
+	fmt.Printf("Expected total turns: %d\n", totalExpectedTurns)
+
+	if err := SimulateAntsOnPaths(ants, paths, distribution, "deplacements.log"); err != nil {
 		fmt.Printf("Simulation error: %v\n", err)
 		return
 	}

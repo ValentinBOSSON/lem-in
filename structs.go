@@ -12,4 +12,21 @@ type ant struct {
 	coordination []int
 	oldchambre   int
 	currentRoom  *chamber
+	assignedPath []*chamber
+	pathPosition int
+}
+
+type Item struct {
+	node     *chamber
+	priority int
+	index    int
+}
+
+type PriorityQueue []*Item
+
+type RoomOccupancy struct {
+	roomID    string
+	timeFreed int
+	antID     int
+	index     int
 }
