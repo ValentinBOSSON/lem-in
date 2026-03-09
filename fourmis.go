@@ -42,17 +42,18 @@ func SimulateAntsOnPaths(ants []*ant, paths [][]*chamber, distribution []int, lo
 		}
 	}
 
+	// donne les conditions de fin et tout ce qui suit avec
 	endRoom := paths[0][len(paths[0])-1]
 	finished := 0
 	turn := 1
 	noProgressTurns := 0
-	maxNoProgressTurns := len(ants) * 100 // Prevent infinite loops
+	maxNoProgressTurns := len(ants) * 100
 
-	// Heap to track when each room becomes free
+	// Heap pour guetter les rooms occupés et quand elles se libèrent
 	roomOccupancy := make(OccupancyQueue, 0)
 	heap.Init(&roomOccupancy)
 
-	// Map to quickly check when a room becomes free
+	// Map pour verif si une room est occupé a un instant t
 	roomFreeTime := make(map[string]int)
 
 	for finished < len(ants) {
@@ -111,7 +112,6 @@ func SimulateAntsOnPaths(ants []*ant, paths [][]*chamber, distribution []int, lo
 						finished++
 					}
 				}
-				// If next room is occupied, ant waits at current position (no move added)
 			}
 		}
 

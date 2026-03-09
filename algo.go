@@ -2,7 +2,6 @@ package main
 
 import (
 	"container/heap"
-	"fmt"
 	"sort"
 )
 
@@ -73,28 +72,21 @@ func FindVertexDisjointPaths(start, end *chamber, maxPaths int) [][]*chamber {
 		return nil
 	}
 
-	// Debug: print how many paths were found
-	fmt.Printf("DEBUG: Found %d candidate paths\n", len(allShortestPaths))
-	for i, p := range allShortestPaths {
-		fmt.Printf("  Path %d: %s\n", i+1, formatPath(p))
-	}
-
 	// Sort paths by length (longer first) to try less-blocking paths first
 	sort.Slice(allShortestPaths, func(i, j int) bool {
 		return len(allShortestPaths[i]) > len(allShortestPaths[j])
 	})
-
-	// Try each shortest path as a starting point and see which gives the most disjoint paths
 	var bestResult [][]*chamber
 
+	// fait une boucle qui check tout les chemins et leur disjoints
 	for startIdx := 0; startIdx < len(allShortestPaths); startIdx++ {
 		var result [][]*chamber
 		blockedNodes := make(map[string]bool)
 
 		// Start with this path
 		result = append(result, allShortestPaths[startIdx])
-		fmt.Printf("DEBUG: Starting with path %d: %s\n", startIdx+1, formatPath(allShortestPaths[startIdx]))
 
+		// bloque les nodes intermédiaires
 		for j := 1; j < len(allShortestPaths[startIdx])-1; j++ {
 			blockedNodes[allShortestPaths[startIdx][j].ID] = true
 		}
@@ -102,7 +94,6 @@ func FindVertexDisjointPaths(start, end *chamber, maxPaths int) [][]*chamber {
 		// Iteratively find more paths
 		for len(result) < maxPaths {
 			path := FindFastestPathAvoiding(start, end, blockedNodes)
-			fmt.Printf("DEBUG: After blocking %v, found path: %v\n", blockedNodes, path)
 
 			if path == nil || len(path) < 2 {
 				break
@@ -139,7 +130,6 @@ func FindVertexDisjointPaths(start, end *chamber, maxPaths int) [][]*chamber {
 	return bestResult
 }
 
-// Find all paths within a reasonable range of shortest distance using BFS
 func findAllShortestPaths(start, end *chamber) [][]*chamber {
 	// First, find the shortest distance
 	dist := make(map[string]int)
@@ -147,10 +137,12 @@ func findAllShortestPaths(start, end *chamber) [][]*chamber {
 	queue = append(queue, start)
 	dist[start.ID] = 0
 
+	// BFS pour trouver les distances les plus courtes
 	for len(queue) > 0 {
 		current := queue[0]
 		queue = queue[1:]
 
+		// Guette les voisins et met à jour les distances
 		for _, next := range current.tunnels {
 			if _, visited := dist[next.ID]; !visited {
 				dist[next.ID] = dist[current.ID] + 1
@@ -173,13 +165,12 @@ func findAllShortestPaths(start, end *chamber) [][]*chamber {
 			return
 		}
 
-		// Prune paths that are already too long
 		if len(path)-1 >= maxDist {
 			return
 		}
 
+		// Explore les voisins et continue si pas encore visité
 		for _, next := range current.tunnels {
-			// Only follow edges that keep us on a reasonable path and avoid cycles
 			if !visited[next.ID] && dist[next.ID] <= dist[current.ID]+1 {
 				newVisited := make(map[string]bool)
 				for k, v := range visited {
@@ -191,13 +182,13 @@ func findAllShortestPaths(start, end *chamber) [][]*chamber {
 		}
 	}
 
+	// depth first search pour trouver les chemins les plus courts et un peu plus longs
 	visited := make(map[string]bool)
 	visited[start.ID] = true
 	dfs(start, []*chamber{start}, visited)
 	return paths
 }
 
-// Greedily find the best combination of vertex-disjoint paths
 func findBestDisjointCombination(allPaths [][]*chamber, maxPaths int) [][]*chamber {
 	var best [][]*chamber
 
@@ -214,7 +205,7 @@ func findBestDisjointCombination(allPaths [][]*chamber, maxPaths int) [][]*chamb
 			usedNodes[allPaths[startIdx][i].ID] = true
 		}
 
-		// Greedily add more paths, preferring shorter ones
+		// continue d'ajouter des chemins tant qu'on peut en trouver sans les même nodes au mêmes moments
 		for len(result) < maxPaths {
 			bestIdx := -1
 			bestLen := int(^uint(0) >> 1) // max int
@@ -233,7 +224,7 @@ func findBestDisjointCombination(allPaths [][]*chamber, maxPaths int) [][]*chamb
 					}
 				}
 
-				// Prefer shorter paths first
+				// On prends les plus petits chemins qui sont disjoints
 				if isDisjoint && len(allPaths[pathIdx]) < bestLen {
 					bestIdx = pathIdx
 					bestLen = len(allPaths[pathIdx])
@@ -244,6 +235,7 @@ func findBestDisjointCombination(allPaths [][]*chamber, maxPaths int) [][]*chamb
 				break
 			}
 
+			// ajoute les meilleurs chemins
 			result = append(result, allPaths[bestIdx])
 			usedIndices[bestIdx] = true
 			for i := 1; i < len(allPaths[bestIdx])-1; i++ {
