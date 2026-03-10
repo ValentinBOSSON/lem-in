@@ -189,71 +189,6 @@ func findAllShortestPaths(start, end *chamber) [][]*chamber {
 	return paths
 }
 
-func findBestDisjointCombination(allPaths [][]*chamber, maxPaths int) [][]*chamber {
-	var best [][]*chamber
-
-	// Try starting with each path
-	for startIdx := 0; startIdx < len(allPaths) && startIdx < maxPaths; startIdx++ {
-		var result [][]*chamber
-		usedNodes := make(map[string]bool)
-		usedIndices := make(map[int]bool)
-
-		// Add first path
-		result = append(result, allPaths[startIdx])
-		usedIndices[startIdx] = true
-		for i := 1; i < len(allPaths[startIdx])-1; i++ {
-			usedNodes[allPaths[startIdx][i].ID] = true
-		}
-
-		// continue d'ajouter des chemins tant qu'on peut en trouver sans les même nodes au mêmes moments
-		for len(result) < maxPaths {
-			bestIdx := -1
-			bestLen := int(^uint(0) >> 1) // max int
-
-			for pathIdx := 0; pathIdx < len(allPaths); pathIdx++ {
-				if usedIndices[pathIdx] {
-					continue
-				}
-
-				// Check if this path is vertex-disjoint from already selected paths
-				isDisjoint := true
-				for i := 1; i < len(allPaths[pathIdx])-1; i++ {
-					if usedNodes[allPaths[pathIdx][i].ID] {
-						isDisjoint = false
-						break
-					}
-				}
-
-				// On prends les plus petits chemins qui sont disjoints
-				if isDisjoint && len(allPaths[pathIdx]) < bestLen {
-					bestIdx = pathIdx
-					bestLen = len(allPaths[pathIdx])
-				}
-			}
-
-			if bestIdx == -1 {
-				break
-			}
-
-			// ajoute les meilleurs chemins
-			result = append(result, allPaths[bestIdx])
-			usedIndices[bestIdx] = true
-			for i := 1; i < len(allPaths[bestIdx])-1; i++ {
-				usedNodes[allPaths[bestIdx][i].ID] = true
-			}
-		}
-
-		// Keep the best result so far (prefer more paths, then shorter total length)
-		if len(result) > len(best) {
-			best = make([][]*chamber, len(result))
-			copy(best, result)
-		}
-	}
-
-	return best
-}
-
-// grosso modo la func a val
 func FindPathWithConstraints(start, end *chamber, blockedEdges map[string]map[string]bool, blockedNodes map[string]bool) []*chamber {
 	// heap l'arbre pour algo ddijkstra
 	pq := make(PriorityQueue, 0)
@@ -297,41 +232,32 @@ func FindPathWithConstraints(start, end *chamber, blockedEdges map[string]map[st
 				costSoFar[next.ID] = newCost
 				cameFrom[next.ID] = current
 
-				// si t'existe pas push si t'existe update la prio et fix l'arbre
-				if !exists {
-					item := &Item{node: next, priority: newCost}
+				item, ok := nodeToItem[next.ID]
+				if !ok {
+					item = &Item{node: next, priority: newCost}
 					nodeToItem[next.ID] = item
 					heap.Push(&pq, item)
 				} else {
-					existingItem, ok := nodeToItem[next.ID]
-					if !ok {
-						existingItem = &Item{node: next, priority: newCost}
-						nodeToItem[next.ID] = existingItem
-						heap.Push(&pq, existingItem)
-					}
-					existingItem.priority = newCost
-					heap.Fix(&pq, existingItem.index)
+					item.priority = newCost
+					heap.Fix(&pq, item.index)
 				}
 			}
 		}
 	}
 
-	curr := end
 	if _, exists := cameFrom[end.ID]; !exists {
 		return nil
 	}
 
 	var path []*chamber
-	for curr.ID != start.ID {
+	for curr := end; curr.ID != start.ID; curr = cameFrom[curr.ID] {
 		path = append(path, curr)
-		curr = cameFrom[curr.ID]
 	}
 	path = append(path, start)
 
 	for i, j := 0, len(path)-1; i < j; i, j = i+1, j-1 {
 		path[i], path[j] = path[j], path[i]
 	}
-
 	return path
 }
 
@@ -349,17 +275,11 @@ func FindFastestPath(start, end *chamber) []*chamber {
 }
 
 func IsOccupied(x int, y int, antpos *ant) bool {
-	if antpos.coordination[0] == x && antpos.coordination[1] == y {
-		return true
-	}
-	return false
+	return antpos.coordination[0] == x && antpos.coordination[1] == y
 }
 
 func Canmove(room *chamber, antpos [][]int) bool {
-	if room.occupied == false {
-		return true
-	}
-	return false
+	return !room.occupied
 }
 
 // Uses a greedy approach: each ant is assigned to the path that will complete soonest
