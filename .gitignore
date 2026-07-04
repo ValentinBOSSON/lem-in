@@ -1,0 +1,10 @@
+# Simulation log (created at runtime)
+*.log
+
+# Compiled binary
+/lem-in
+
+# OS and editor files
+.DS_Store
+.vscode/
+.idea/
