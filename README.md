@@ -28,3 +28,22 @@ algo.go             pathfinding: disjoint paths, BFS, heaps
 fourmis.go          ant creation and turn-by-turn simulation
 structs.go          chambers, ants, graph structures
 ```
+
+## Testing
+
+Run the automated test suite:
+
+```bash
+go test -v ./...
+```
+
+The test suite validates:
+- Map parsing across sample maps (`test0.txt` through `test5.txt`)
+- Vertex-disjoint constraints (ensuring intermediate chambers are never shared between concurrent paths)
+- Optimal ant distribution across paths
+- End-to-end turn-by-turn simulation
+
+## Authors
+
+- Valentin Bosson ([@ValentinBOSSON](https://github.com/ValentinBOSSON))
+- Guylann Bresson ([@nosserb](https://github.com/nosserb))
